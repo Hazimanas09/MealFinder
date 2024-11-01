@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Finder</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Pacifico&display=swap" rel="stylesheet">
+
+    <style>
+        /* General styling */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            background-color: #ff416c;
+            background-image: linear-gradient(90deg, #ff4b2b, #ff416c);
+            color: white;
+            font-size: 3rem;
+            padding: 20px 0;
+            width: 100%;
+            font-family: 'Pacifico', cursive;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 90%;
+            margin: 40px auto;
+            text-align: center;
+        }
+
+        .search-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .search-bar input,
+        .search-bar button {
+            padding: 15px;
+            border-radius: 25px;
+            border: none;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar input {
+            width: 250px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background: #fff;
+        }
+
+        .search-bar button {
+            background-color: #ff416c;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 15px 25px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-bar button:hover {
+            background-color: #ff4b2b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .meal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .meal {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+
+        .meal:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .meal img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 15px;
+        }
+
+        .meal h2 {
+            color: #ff416c;
+            margin-top: 15px;
+            font-size: 1.5rem;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            text-align: left;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .modal-content h2 {
+            color: #ff416c;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+            font-family: 'Pacifico', cursive;
+        }
+
+        .modal-content p {
+            font-size: 1rem;
+            color: #555;
+            margin: 10px 0;
+        }
+
+        .modal-content a {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 12px 25px;
+            background-color: #ff416c;
+            color: white;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-content a:hover {
+            background-color: #ff4b2b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #ff416c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background-color: #ff4b2b;
+            transform: scale(1.1);
+        }
+
+        /* Meal Plan Styles */
+        .meal-plan {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #ffebee;
+            border-radius: 20px;
+            text-align: left;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .meal-plan h3 {
+            color: #ff416c;
+            font-size: 1.8rem;
+            font-family: 'Pacifico', cursive;
+            margin-bottom: 20px;
+        }
+
+        .meal-plan ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .meal-plan li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background-color: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .meal-plan li button {
+            background: #ff416c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .meal-plan li button:hover {
+            background-color: #ff4b2b;
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .meal-plan-button {
+            background-color: #FF6347; /* Tomato color for a warm look */
+            color: #fff; /* White text */
+            font-size: 18px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        
+        .meal-plan-button:hover {
+            background-color: #FF4500; /* Darker shade on hover */
+            transform: scale(1.05); /* Slightly larger on hover */
+        }
+        
+        .meal-plan-button:active {
+            background-color: #FF6347;
+            transform: scale(0.98); /* Slightly smaller on click */
+        }
+        .grocery-section {
+            background-color: #fefefe;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            font-family: 'Arial', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        .grocery-section h3 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        #groceryInput {
+            width: calc(100% - 20px);
+            padding: 12px 10px;
+            border: 2px solid #3498db;
+            border-radius: 4px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        
+        #groceryInput:focus {
+            border-color: #2980b9;
+        }
+        
+       /* Grocery Section Button Styles */
+        .grocery {
+            background-color: #ff7f50; /* Coral color for the grocery buttons */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px; /* Rounded corners for a softer look */
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.2s ease; /* Add transform transition */
+            width: auto; /* Adjust width to fit content */
+            display: inline-block; /* Aligns button nicely */
+            margin-top: 10px;
+        }
+
+        .grocery:hover {
+            background-color: #ff6347; /* Darker coral color on hover */
+            transform: translateY(-2px); /* Slight upward movement on hover */
+        }
+
+        
+        .grocery-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+        
+        .grocery-list li {
+            padding: 10px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .grocery-list li button {
+            background-color: #e74c3c;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        
+        .grocery-list li button:hover {
+            background-color: #c0392b;
+        }
+        
+
+    </style>
+</head>
+<body>
+
+<header>JimMeal Secret</header>
+
+<div class="container">
+    <div class="search-bar">
+        <input type="text" id="searchMeal" placeholder="Search meal by name..." />
+        <button onclick="searchMealByName()">Search Meal</button>
+        <input type="text" id="searchIngredient" placeholder="Search meal by ingredient..." />
+        <button onclick="searchMealByIngredient()">Search Meal</button>
+            
+    </div>
+
+    <div id="meal-result" class="meal-grid"></div>
+    
+    <!-- Meal Plan Section -->
+    <div class="meal-plan">
+        <h3>Your Meal Plan</h3>
+        <ul id="mealPlanList"></ul>
+    </div>
+
+    <div class="grocery-section" id="grocerySection" style="display: none;">
+        <h3>Your Grocery List</h3>
+        <input type="text" id="groceryInput" placeholder="Add grocery item..." />
+        <button class="grocery" onclick="addGrocery()">Add Grocery</button>
+        <ul id="groceryList" class="grocery-list"></ul>
+        <button onclick="downloadGroceryList()" class="meal-plan-button" style="margin-top: 10px;">Download Grocery List</button>
+    </div>
+
+    <button onclick="downloadMealPlan()" class="meal-plan-button" style="margin-top: 20px;">Download Meal Plan</button>
+    
+
+</div>
+
+<!-- Modal for Meal Details -->
+<div id="mealModal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal()">×</button>
+        <h2 id="modalMealName"></h2>
+        <p><strong>Category:</strong> <span id="modalCategory"></span></p>
+        <p><strong>Area:</strong> <span id="modalArea"></span></p>
+        <p><strong>Ingredients:</strong> <span id="modalIngredients"></span></p>
+        <p><strong>Instructions:</strong></p>
+        <p id="modalInstructions"></p>
+        <a id="modalYoutube" href="#" target="_blank">Watch on YouTube</a>
+        <button class="meal-plan-button" onclick="addToMealPlan()">Add to Meal Plan</button>
+    </div>
+</div>
+
+<script>
+
+    let mealPlan = []; // Array to hold meal plan items
+    let groceryList = []; // Array to hold grocery items
+
+        function addGrocery() {
+            const groceryInput = document.getElementById('groceryInput').value.trim();
+            if (groceryInput) {
+                groceryList.push(groceryInput); // Add the grocery item to the list
+                document.getElementById('groceryInput').value = ''; // Clear the input field
+                renderGroceryList(); // Update the display
+                document.getElementById('grocerySection').style.display = 'block'; // Show grocery section if hidden
+            } else {
+                alert("Grocery item cannot be empty.");
+            }
+        }
+
+        function renderGroceryList() {
+            const groceryListElement = document.getElementById('groceryList');
+            groceryListElement.innerHTML = ''; // Clear the existing grocery list
+
+            groceryList.forEach((item, index) => {
+                const itemElement = document.createElement('li');
+                itemElement.textContent = item;
+
+                // Create an Edit button
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.onclick = () => editGrocery(index);
+                itemElement.appendChild(editButton);
+
+                // Create a Remove button
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remove';
+                removeButton.onclick = () => removeGrocery(index);
+                itemElement.appendChild(removeButton);
+
+                groceryListElement.appendChild(itemElement);
+            });
+        }
+
+        function editGrocery(index) {
+            const newGrocery = prompt("Edit grocery item:", groceryList[index]);
+            if (newGrocery !== null && newGrocery.trim() !== '') {
+                groceryList[index] = newGrocery.trim(); // Update the grocery item
+                renderGroceryList(); // Update the display
+            } else {
+                alert("Grocery item cannot be empty.");
+            }
+        }
+
+        function removeGrocery(index) {
+            groceryList.splice(index, 1); // Remove the grocery item from the list
+            renderGroceryList(); // Update the display
+        }
+
+function downloadGroceryList() {
+    if (groceryList.length === 0) {
+        alert("Your grocery list is empty!");
+        return;
+    }
+
+    let groceryListText = "Your Grocery List:\n\n";
+    groceryList.forEach((item, index) => {
+        groceryListText += `${index + 1}. ${item}\n`;
+    });
+
+    const blob = new Blob([groceryListText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'grocery_list.txt';
+    a.click();
+    URL.revokeObjectURL(url); // Clean up URL.createObjectURL
+}
+
+function downloadMealPlan() {
+    if (mealPlan.length === 0) {
+        alert("Your meal plan is empty!");
+        return;
+    }
+    
+    let mealPlanText = "Your Meal Plan:\n\n";
+    mealPlan.forEach((meal, index) => {
+        mealPlanText += `${index + 1}. ${meal}\n`;
+    });
+
+    const blob = new Blob([mealPlanText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'meal_plan.txt';
+    a.click();
+    URL.revokeObjectURL(url); // Clean up URL.createObjectURL
+}
+
+
+function addMealToPlan(meal) {
+    if (meal && meal.trim() !== "") {
+        mealPlan.push(meal);
+        renderMealPlan();
+    } else {
+        alert("Meal name cannot be empty.");
+    }
+}
+
+function removeMealFromPlan(index) {
+    mealPlan.splice(index, 1); // Remove meal from the plan
+    renderMealPlan(); // Re-render the meal plan to reflect changes
+}
+
+async function showMealDetails(meal) {
+    // Fetch full meal details using the meal ID
+    const apiUrl = `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${meal.idMeal}`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    const fullMeal = data.meals[0];
+
+    document.getElementById('modalMealName').textContent = fullMeal.strMeal;
+    document.getElementById('modalCategory').textContent = fullMeal.strCategory;
+    document.getElementById('modalArea').textContent = fullMeal.strArea;
+
+    const ingredients = [];
+    for (let i = 1; i <= 20; i++) {
+        const ingredient = fullMeal[`strIngredient${i}`];
+        const measure = fullMeal[`strMeasure${i}`];
+        if (ingredient) {
+            ingredients.push(`${measure} ${ingredient}`.trim());
+        }
+    }
+
+    document.getElementById('modalIngredients').textContent = ingredients.join(', ') || 'No ingredients available.';
+    document.getElementById('modalInstructions').textContent = fullMeal.strInstructions;
+    document.getElementById('modalYoutube').href = fullMeal.strYoutube || '#';
+
+    document.getElementById('mealModal').style.display = 'flex';
+}
+
+// Fetch meal categories to populate the dropdown
+async function fetchCategories() {
+    const response = await fetch('https://www.themealdb.com/api/json/v1/1/list.php?c=list');
+    const data = await response.json();
+    const categorySelect = document.getElementById('mealCategory');
+
+    data.meals.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.strCategory;
+        option.textContent = category.strCategory;
+        categorySelect.appendChild(option);
+    });
+}
+
+// Search meal by category
+async function searchMealByCategory() {
+    const category = document.getElementById('mealCategory').value;
+    const apiUrl = `https://www.themealdb.com/api/json/v1/1/filter.php?c=${category}`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    displayMeals(data.meals);
+}
+
+async function searchMealByName() {
+    const mealName = document.getElementById('searchMeal').value;
+    const apiUrl = `https://www.themealdb.com/api/json/v1/1/search.php?s=${mealName}`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    displayMeals(data.meals);
+    showGrocerySection();
+}
+
+async function searchMealByIngredient() {
+    const ingredient = document.getElementById('searchIngredient').value;
+    const apiUrl = `https://www.themealdb.com/api/json/v1/1/filter.php?i=${ingredient}`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    displayMeals(data.meals);
+    showGrocerySection();
+}
+
+function displayMeals(meals) {
+    const mealResult = document.getElementById('meal-result');
+    mealResult.innerHTML = '';
+
+    if (meals) {
+        meals.forEach(meal => {
+            const mealDiv = document.createElement('div');
+            mealDiv.classList.add('meal');
+            mealDiv.innerHTML = `
+                <img src="${meal.strMealThumb}" alt="${meal.strMeal}">
+                <h2>${meal.strMeal}</h2>
+            `;
+            
+            mealDiv.onclick = async () => {
+                // Fetch the full meal details by ID to get ingredients and instructions
+                const apiUrl = `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${meal.idMeal}`;
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                const fullMeal = data.meals[0];
+                
+                // Show meal details with full information
+                showMealDetails(fullMeal);
+            };
+
+            mealResult.appendChild(mealDiv);
+        });
+    } else {
+        mealResult.innerHTML = '<p>No meals found. Please try again.</p>';
+    }
+}
+
+function closeModal() {
+    document.getElementById('mealModal').style.display = 'none';
+}
+
+function addToMealPlan() {
+    const mealName = document.getElementById('modalMealName').textContent;
+    if (!mealPlan.includes(mealName)) { // Prevent duplicates
+        mealPlan.push(mealName);
+        renderMealPlan();
+        closeModal();
+    } else {
+        alert("This meal is already in your meal plan.");
+    }
+}
+
+function renderMealPlan() {
+    const mealPlanList = document.getElementById('mealPlanList');
+    mealPlanList.innerHTML = ''; // Clear the existing list
+
+    mealPlan.forEach((meal, index) => {
+        const mealItem = document.createElement('li');
+        const mealText = document.createElement('span');
+        mealText.textContent = meal;
+
+        // Create and set up the Edit button
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.addEventListener('click', () => {
+            const newMealName = prompt("Edit meal name:", meal);
+            if (newMealName && newMealName.trim() !== "") {
+                mealPlan[index] = newMealName; // Update the meal name in the array
+                renderMealPlan(); // Refresh the list
+            } else {
+                alert("Meal name cannot be empty."); // Ensure valid input
+            }
+        });
+
+        // Create and set up the Remove button
+        const removeButton = document.createElement('button');
+        removeButton.textContent = 'Remove';
+        removeButton.addEventListener('click', () => {
+            mealPlan.splice(index, 1); // Remove meal from the plan
+            renderMealPlan(); // Re-render the meal plan to reflect changes
+        });
+
+        mealItem.appendChild(mealText);
+        mealItem.appendChild(editButton);
+        mealItem.appendChild(removeButton);
+        mealPlanList.appendChild(mealItem);
+    });
+}
+
+
+function editMealInPlan(index) {
+    const newMealName = prompt("Edit meal name:", mealPlan[index]);
+    if (newMealName && newMealName.trim() !== "") {
+        mealPlan[index] = newMealName; // Update the meal name in the array
+        renderMealPlan(); // Refresh the list
+    } else {
+        alert("Meal name cannot be empty."); // Ensure valid input
+    }
+}
+
+function removeMealFromPlan(index) {
+    mealPlan.splice(index, 1);
+    renderMealPlan();
+}
+
+// Download functionality remains the same
+function downloadMealPlan() {
+    if (mealPlan.length === 0) {
+        alert("Your meal plan is empty!");
+        return;
+    }
+    
+    let mealPlanText = "Your Meal Plan:\n\n";
+    mealPlan.forEach((meal, index) => {
+        mealPlanText += `${index + 1}. ${meal}\n`;
+    });
+    
+    const blob = new Blob([mealPlanText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'MealPlan.txt';
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
+// Function to add a new grocery item
+function addGroceryItem() {
+    const groceryInput = document.getElementById('groceryItemInput');
+    const groceryValue = groceryInput.value.trim();
+
+    if (groceryValue) {
+        const listItem = document.createElement('li');
+        
+        // Create span to display item name
+        const itemSpan = document.createElement('span');
+        itemSpan.textContent = groceryValue;
+        
+        // Create edit button
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.onclick = function() {
+            editGroceryItem(itemSpan);
+        };
+
+        // Create remove button
+        const removeButton = document.createElement('button');
+        removeButton.textContent = 'Remove';
+        removeButton.onclick = function() {
+            removeGroceryItem(listItem);
+        };
+
+        listItem.appendChild(itemSpan);
+        listItem.appendChild(editButton);
+        listItem.appendChild(removeButton);
+
+        document.getElementById('groceryItems').appendChild(listItem);
+        groceryInput.value = ''; // Clear input field
+    }
+}
+
+// Function to edit a grocery item
+function editGroceryItem(itemSpan) {
+    const newValue = prompt("Edit the item:", itemSpan.textContent);
+    if (newValue !== null) {
+        itemSpan.textContent = newValue.trim();
+    }
+}
+
+// Function to remove a grocery item
+function removeGroceryItem(listItem) {
+    listItem.remove();
+}
+
+function showGrocerySection() {
+    document.getElementById('grocerySection').style.display = 'block';
+}
+
+
+</script>
+
+</body>
+</html>

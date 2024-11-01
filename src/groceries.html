@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocery List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+        }
+        .grocery-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .item-buttons {
+            margin-left: 10px;
+        }
+        button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .edit-input {
+            margin-left: 10px;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Grocery List</h1>
+    <div>
+        <input type="text" id="new-item" placeholder="Add a new grocery item" />
+        <button onclick="addGroceryItem()">Add</button>
+    </div>
+    <div id="grocery-list-container"></div>
+
+    <script>
+        let groceryList = JSON.parse(localStorage.getItem('groceryList')) || [];
+        const groceryListContainer = document.getElementById('grocery-list-container');
+
+        // Display the grocery list
+        function displayGroceryList() {
+            groceryListContainer.innerHTML = ''; // Clear the current list
+            groceryList.forEach((item, index) => {
+                const itemElement = document.createElement('div');
+                itemElement.classList.add('grocery-item');
+                itemElement.innerHTML = `
+                    <p id="item-text-${index}">${item}</p>
+                    <input type="text" id="edit-input-${index}" class="edit-input" value="${item}" style="display:none;">
+                    <div class="item-buttons">
+                        <button class="edit-btn" onclick="editGroceryItem(${index})">Edit</button>
+                        <button class="save-btn" onclick="saveGroceryItem(${index})" style="display:none;">Save</button>
+                        <button class="remove-btn" onclick="removeGroceryItem(${index})">Remove</button>
+                    </div>
+                `;
+                groceryListContainer.appendChild(itemElement);
+            });
+        }
+
+        // Add a new grocery item
+        function addGroceryItem() {
+            const newItem = document.getElementById('new-item').value.trim();
+            if (newItem !== '') {
+                groceryList.push(newItem);
+                localStorage.setItem('groceryList', JSON.stringify(groceryList));
+                document.getElementById('new-item').value = ''; // Clear input
+                displayGroceryList();
+            } else {
+                alert('Item cannot be empty!');
+            }
+        }
+
+        // Enter edit mode for a specific grocery item
+        function editGroceryItem(index) {
+            document.getElementById(`item-text-${index}`).style.display = 'none';
+            document.getElementById(`edit-input-${index}`).style.display = 'inline';
+            document.querySelectorAll('.save-btn')[index].style.display = 'inline';
+            document.querySelectorAll('.edit-btn')[index].style.display = 'none';
+        }
+
+        // Save the updated grocery item
+        function saveGroceryItem(index) {
+            const newValue = document.getElementById(`edit-input-${index}`).value.trim();
+            if (newValue !== '') {
+                groceryList[index] = newValue;
+                localStorage.setItem('groceryList', JSON.stringify(groceryList));
+                displayGroceryList();
+            } else {
+                alert('Item cannot be empty!');
+            }
+        }
+
+        // Remove a grocery item
+        function removeGroceryItem(index) {
+            groceryList.splice(index, 1);
+            localStorage.setItem('groceryList', JSON.stringify(groceryList));
+            displayGroceryList();
+        }
+
+        // Initial display of grocery list
+        displayGroceryList();
+    </script>
+</body>
+</html>
